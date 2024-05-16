@@ -26,8 +26,12 @@ class EmployeeListCreate(generics.ListCreateAPIView):
     serializer_class = EmployeeSerializer
 
     def get_queryset(self):
-        return Employee.objects.all()
-
+        queryset = Employee.objects.all()
+        search_query = self.request.query_params.get('search', None)
+        if search_query is not None:
+            queryset = queryset.filter(name__icontains=search_query)
+        return queryset
+    
     def get(self, request, *args, **kwargs):
         employees = self.get_queryset()
         serializer = self.serializer_class(employees, many=True)
@@ -41,6 +45,7 @@ class EmployeeListCreate(generics.ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
 
 class EmployeeRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
     """
@@ -53,7 +58,8 @@ class EmployeeRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = EmployeeSerializer
 
     def get_queryset(self):
-        return Employee.objects.all()
+        queryset = Employee.objects.all()
+        return queryset
     
     def get(self, request, *args, **kwargs):
         instance = self.get_object()
